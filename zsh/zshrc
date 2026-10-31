@@ -18,8 +18,10 @@ bindkey '^[[A' history-search-backward
 bindkey '^[[B' history-search-forward
 
 # Kali-style prompt
-PROMPT='%F{blue}┌──(%F{cyan}agni@ANDROID%F{blue})-[%F{green}%~%F{blue}]
-%F{blue}└─%f$ '
+KALI_USER="agni"
+KALI_HOST="ANDROID"
+KALI_SEP="㉿"   # if your font shows a box, change this to "@"
+PROMPT="%F{green}┌──(%B%F{blue}${KALI_USER}${KALI_SEP}${KALI_HOST}%b%F{green})-[%B%F{white}%(6~.%-1~/…/%4~.%5~)%b%F{green}]"$'\n'"%F{green}└─%B%F{blue}\$%b%f "
 
 # Disable underline styles BEFORE loading syntax highlighting
 typeset -A ZSH_HIGHLIGHT_STYLES
