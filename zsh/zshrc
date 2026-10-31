@@ -1,0 +1,102 @@
+
+# Clear screen on startup
+clear
+
+# History
+HISTFILE="$HOME/.zsh_history"
+HISTSIZE=5000
+SAVEHIST=5000
+setopt HIST_IGNORE_DUPS
+setopt SHARE_HISTORY
+
+# Completion
+autoload -Uz compinit
+compinit
+
+# History search
+bindkey '^[[A' history-search-backward
+bindkey '^[[B' history-search-forward
+
+# Kali-style prompt
+PROMPT='%F{blue}┌──(%F{cyan}agni@ANDROID%F{blue})-[%F{green}%~%F{blue}]
+%F{blue}└─%f$ '
+
+# Disable underline styles BEFORE loading syntax highlighting
+typeset -A ZSH_HIGHLIGHT_STYLES
+ZSH_HIGHLIGHT_STYLES[path]='none'
+ZSH_HIGHLIGHT_STYLES[path_prefix]='none'
+ZSH_HIGHLIGHT_STYLES[command]='none'
+ZSH_HIGHLIGHT_STYLES[alias]='none'
+ZSH_HIGHLIGHT_STYLES[builtin]='none'
+ZSH_HIGHLIGHT_STYLES[function]='none'
+ZSH_HIGHLIGHT_STYLES[unknown-token]='none'
+
+# Autosuggestions
+if [[ -f "$PREFIX/share/zsh-autosuggestions/zsh-autosuggestions.zsh" ]]; then
+  source "$PREFIX/share/zsh-autosuggestions/zsh-autosuggestions.zsh"
+elif [[ -f "$HOME/.zsh/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh" ]]; then
+  source "$HOME/.zsh/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh"
+fi
+
+# Syntax highlighting: load ONCE, at the end
+if [[ -f "$PREFIX/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh" ]]; then
+  source "$PREFIX/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh"
+elif [[ -f "$HOME/.zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh" ]]; then
+  source "$HOME/.zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh"
+fi
+
+# C: Compile with clang and run
+c() {
+    if [[ $# -ne 1 || "$1" != *.c || ! -f "$1" ]]; then
+        echo "Usage: c filename.c"
+        return 1
+    fi
+
+    local src="$1"
+    local filename="${src:t}"
+    local src_dir="$HOME/project/src"
+    local source="$src_dir/$filename"
+    local out="$src_dir/${filename%.c}"
+
+    mkdir -p "$src_dir" || return 1
+
+    if [[ "$src:A" != "$source:A" ]]; then
+        cp -- "$src" "$source" || return 1
+    fi
+
+    clang "$source" -std=c17 -Wall -Wextra -pedantic -o "$out" || return 1
+
+    "$out"
+    local rc=$?
+
+    printf '\n'
+    return $rc
+}
+
+# C++: Compile with clang++ and run
+cpp() {
+    if [[ $# -ne 1 || "$1" != *.cpp || ! -f "$1" ]]; then
+        echo "Usage: cpp filename.cpp"
+        return 1
+    fi
+
+    local src="$1"
+    local filename="${src:t}"
+    local src_dir="$HOME/project/src"
+    local source="$src_dir/$filename"
+    local out="$src_dir/${filename%.cpp}"
+
+    mkdir -p "$src_dir" || return 1
+
+    if [[ "$src:A" != "$source:A" ]]; then
+        cp -- "$src" "$source" || return 1
+    fi
+
+    clang++ "$source" -std=c++17 -Wall -Wextra -pedantic -o "$out" || return 1
+
+    "$out"
+    local rc=$?
+
+    printf '\n'
+    return $rc
+}
