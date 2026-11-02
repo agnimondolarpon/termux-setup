@@ -1,0 +1,25 @@
+# security - networking and security tooling
+# Use only on systems you own or have explicit written permission to test.
+nmap
+masscan
+hydra
+john
+sqlmap
+nikto
+tcpdump
+tshark
+netcat-openbsd
+socat
+whois
+dnsutils
+traceroute
+mtr
+openssl
+openvpn
+wireguard-tools
+proxychains-ng
+tor
+radare2
+ffuf
+7zip
+# metasploit            # needs the unstable repo: ./install-pkg.sh --with-repos

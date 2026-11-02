@@ -1,104 +1,149 @@
+# ~/.zshrc - Termux | Kali-style prompt | Tokyo Night colors
+# Managed by termux-setup: edit it in the repo and re-run install.sh,
+# or edit the live file and run backup.sh to save it back.
 
 # Clear screen on startup
 clear
 
+# ---- environment -----------------------------------------------------------
+typeset -U path
+path=("$HOME/.local/bin" $path)
+
+if (( $+commands[nvim] )); then
+  export EDITOR=nvim VISUAL=nvim
+else
+  export EDITOR=nano VISUAL=nano
+fi
+
+# ---- options ---------------------------------------------------------------
+setopt AUTO_CD INTERACTIVE_COMMENTS NO_BEEP
+
 # History
 HISTFILE="$HOME/.zsh_history"
-HISTSIZE=5000
-SAVEHIST=5000
-setopt HIST_IGNORE_DUPS
-setopt SHARE_HISTORY
+HISTSIZE=50000
+SAVEHIST=50000
+setopt HIST_IGNORE_DUPS HIST_IGNORE_SPACE HIST_REDUCE_BLANKS SHARE_HISTORY
 
 # Completion
 autoload -Uz compinit
-compinit
+mkdir -p "$HOME/.cache/zsh"
+compinit -d "$HOME/.cache/zsh/zcompdump"
+zstyle ':completion:*' menu select
+zstyle ':completion:*' matcher-list 'm:{a-z}={A-Z}'
 
-# History search
+# ---- key bindings ----------------------------------------------------------
 bindkey '^[[A' history-search-backward
 bindkey '^[[B' history-search-forward
+bindkey '^[[H' beginning-of-line
+bindkey '^[[F' end-of-line
+bindkey '^[[3~' delete-char
 
-# Kali-style prompt
-KALI_USER="agni"
-KALI_HOST="ANDROID"
-KALI_SEP="㉿"   # if your font shows a box, change this to "@"
-PROMPT="%F{green}┌──(%B%F{blue}${KALI_USER}${KALI_SEP}${KALI_HOST}%b%F{green})-[%B%F{white}%(6~.%-1~/…/%4~.%5~)%b%F{green}]"$'\n'"%F{green}└─%B%F{blue}\$%b%f "
+# ---- prompt (Kali style) ---------------------------------------------------
+# Override these before this point (e.g. in ~/.zshenv) to change the prompt.
+: "${PROMPT_USER:=agni}"
+: "${PROMPT_HOST:=ANDROID}"
+: "${PROMPT_SEP:=@}"   # Kali uses a circled-at glyph; needs a Nerd/Unicode font
+PROMPT="%F{white}┌──(%B%F{blue}${PROMPT_USER}${PROMPT_SEP}${PROMPT_HOST}%b%F{white})- [%B%F{green}%~/%b%F{white}]"$'\n'"%F{white}└─%B%F{blue}\$%b%f "
 
-# Disable underline styles BEFORE loading syntax highlighting
+# ---- plugins ---------------------------------------------------------------
+# Syntax-highlighting styles must be set BEFORE the plugin is loaded.
 typeset -A ZSH_HIGHLIGHT_STYLES
 ZSH_HIGHLIGHT_STYLES[path]='none'
 ZSH_HIGHLIGHT_STYLES[path_prefix]='none'
-ZSH_HIGHLIGHT_STYLES[command]='none'
-ZSH_HIGHLIGHT_STYLES[alias]='none'
-ZSH_HIGHLIGHT_STYLES[builtin]='none'
-ZSH_HIGHLIGHT_STYLES[function]='none'
-ZSH_HIGHLIGHT_STYLES[unknown-token]='none'
+ZSH_HIGHLIGHT_STYLES[command]='fg=green'
+ZSH_HIGHLIGHT_STYLES[builtin]='fg=green'
+ZSH_HIGHLIGHT_STYLES[function]='fg=green'
+ZSH_HIGHLIGHT_STYLES[alias]='fg=green'
+ZSH_HIGHLIGHT_STYLES[precommand]='fg=green'
+ZSH_HIGHLIGHT_STYLES[unknown-token]='fg=red'
 
-# Autosuggestions
-if [[ -f "$PREFIX/share/zsh-autosuggestions/zsh-autosuggestions.zsh" ]]; then
-  source "$PREFIX/share/zsh-autosuggestions/zsh-autosuggestions.zsh"
-elif [[ -f "$HOME/.zsh/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh" ]]; then
-  source "$HOME/.zsh/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh"
-fi
+ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE='fg=8'
 
-# Syntax highlighting: load ONCE, at the end
-if [[ -f "$PREFIX/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh" ]]; then
-  source "$PREFIX/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh"
-elif [[ -f "$HOME/.zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh" ]]; then
-  source "$HOME/.zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh"
-fi
-
-# C: Compile with clang and run
-c() {
-    if [[ $# -ne 1 || "$1" != *.c || ! -f "$1" ]]; then
-        echo "Usage: c filename.c"
-        return 1
+# Load a plugin from the Termux package dir, falling back to ~/.zsh/plugins.
+_ts_source_plugin() {
+  local name="$1" f
+  for f in "$PREFIX/share/$name/$name.zsh" "$HOME/.zsh/plugins/$name/$name.zsh"; do
+    if [[ -f "$f" ]]; then
+      source "$f"
+      return 0
     fi
-
-    local src="$1"
-    local filename="${src:t}"
-    local src_dir="$HOME/project/src"
-    local source="$src_dir/$filename"
-    local out="$src_dir/${filename%.c}"
-
-    mkdir -p "$src_dir" || return 1
-
-    if [[ "$src:A" != "$source:A" ]]; then
-        cp -- "$src" "$source" || return 1
-    fi
-
-    clang "$source" -std=c17 -Wall -Wextra -pedantic -o "$out" || return 1
-
-    "$out"
-    local rc=$?
-
-    printf '\n'
-    return $rc
+  done
+  return 1
 }
 
-# C++: Compile with clang++ and run
-cpp() {
-    if [[ $# -ne 1 || "$1" != *.cpp || ! -f "$1" ]]; then
-        echo "Usage: cpp filename.cpp"
-        return 1
-    fi
+_ts_source_plugin zsh-autosuggestions
+_ts_source_plugin zsh-syntax-highlighting   # must be loaded last
+unfunction _ts_source_plugin
 
-    local src="$1"
-    local filename="${src:t}"
-    local src_dir="$HOME/project/src"
-    local source="$src_dir/$filename"
-    local out="$src_dir/${filename%.cpp}"
+# ---- aliases ---------------------------------------------------------------
+alias ls='ls --color=auto'
+alias ll='ls -lAh'
+alias la='ls -A'
+alias grep='grep --color=auto'
+alias ..='cd ..'
+alias ...='cd ../..'
+alias gs='git status -sb'
+alias gl='git log --oneline --graph --decorate -15'
+alias gd='git diff'
 
-    mkdir -p "$src_dir" || return 1
+# ---- small helpers ---------------------------------------------------------
+# mkcd DIR: create a directory and enter it
+mkcd() { mkdir -p -- "$1" && cd -- "$1"; }
 
-    if [[ "$src:A" != "$source:A" ]]; then
-        cp -- "$src" "$source" || return 1
-    fi
-
-    clang++ "$source" -std=c++17 -Wall -Wextra -pedantic -o "$out" || return 1
-
-    "$out"
-    local rc=$?
-
-    printf '\n'
-    return $rc
+# extract FILE: unpack common archive types
+extract() {
+  if [[ ! -f "$1" ]]; then
+    echo "Usage: extract archive"
+    return 1
+  fi
+  case "$1" in
+    *.tar.gz|*.tgz)   tar xzf "$1" ;;
+    *.tar.bz2|*.tbz2) tar xjf "$1" ;;
+    *.tar.xz|*.txz)   tar xJf "$1" ;;
+    *.tar)            tar xf "$1" ;;
+    *.zip)            unzip "$1" ;;
+    *.gz)             gunzip "$1" ;;
+    *.7z)             7z x "$1" ;;
+    *) echo "extract: unknown archive type: $1"; return 1 ;;
+  esac
 }
+
+# ---- C / C++ compile-and-run helpers ---------------------------------------
+# c file.c [args...]      compile with clang (C17) and run
+# cpp file.cpp [args...]  compile with clang++ (C++17) and run
+# Sources are copied to $TS_SRC_DIR and the binary is built next to them.
+: "${TS_SRC_DIR:=$HOME/root/project/src}"
+: "${TS_CC:=clang}"
+: "${TS_CXX:=clang++}"
+
+# _ts_build_run NAME EXT COMPILER STD SOURCE [args...]
+_ts_build_run() {
+  local name="$1" ext="$2" compiler="$3" std="$4" src="$5"
+  shift 5
+
+  if [[ -z "$src" || "$src" != *.$ext || ! -f "$src" ]]; then
+    echo "Usage: $name filename.$ext [args...]"
+    return 1
+  fi
+
+  local filename="${src:t}"
+  local dest="$TS_SRC_DIR/$filename"
+  local out="$TS_SRC_DIR/${filename%.$ext}"
+
+  mkdir -p "$TS_SRC_DIR" || return 1
+
+  if [[ "${src:A}" != "${dest:A}" ]]; then
+    cp -- "$src" "$dest" || return 1
+  fi
+
+  "$compiler" "$dest" -std="$std" -g -Wall -Wextra -pedantic -o "$out" || return 1
+
+  "$out" "$@"
+  local rc=$?
+
+  printf '\n'
+  return $rc
+}
+
+c()   { _ts_build_run c   c   "$TS_CC"  c17   "${1:-}" "${@:2}"; }
+cpp() { _ts_build_run cpp cpp "$TS_CXX" c++17 "${1:-}" "${@:2}"; }

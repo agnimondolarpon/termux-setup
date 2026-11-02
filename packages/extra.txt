@@ -1,0 +1,10 @@
+# extra - optional; installed only with --all or --group extra
+fastfetch
+figlet
+ncdu
+rsync
+sqlite
+android-tools
+ruby
+php
+openjdk-17

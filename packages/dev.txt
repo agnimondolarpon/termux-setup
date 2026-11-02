@@ -1,0 +1,23 @@
+# dev - C/C++ toolchain, debuggers, build systems and common languages
+clang
+make
+cmake
+ninja
+pkg-config
+binutils
+autoconf
+automake
+libtool
+bear
+ccache
+gdb
+lldb
+strace
+ltrace
+man-pages
+python
+python-pip
+nodejs
+golang
+rust
+gh

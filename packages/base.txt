@@ -1,0 +1,23 @@
+# base - core shell environment and everyday tools
+# One package per line. Text after '#' is ignored.
+zsh
+git
+curl
+wget
+openssh
+unzip
+zip
+tar
+neovim
+nano
+tmux
+man
+ripgrep
+fd
+fzf
+bat
+jq
+tree
+htop
+termux-tools
+termux-api

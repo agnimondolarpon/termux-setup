@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# Copy your live config from $HOME back into this repo, then review with `git diff`.
+# backup.sh - copy the live config from $HOME back into this repository,
+# then show what changed. Review with `git diff` before committing.
 set -euo pipefail
 
 REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
